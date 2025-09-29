@@ -1,11 +1,14 @@
-<script setup></script>
-
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <Navbar></Navbar>
+  <router-view></router-view>
 </template>
+
+<script setup>
+import { useAuthStore } from './stores/auth'
+import Navbar from './components/Navbar.vue'
+const auth = useAuthStore()
+auth.fetchUser()
+auth.listenToAuth()
+</script>
 
 <style scoped></style>

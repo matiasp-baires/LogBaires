@@ -1,8 +1,45 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import Home from '@/views/Home.vue'
+import SignIn from '@/views/SignIn.vue'
+import SignUp from '@/views/SignUp.vue'
+import Sign_ResetPassword from '@/views/Sign_ResetPassword.vue'
+import Javer from '@/views/Javer.vue'
+import Javerim from '@/views/Javerim.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [],
+  routes: [
+    {
+      path: '/',
+      name: 'Home',
+      component: Home,
+    },
+    {
+      path: '/signin',
+      name: 'SignIn',
+      component: SignIn,
+    },
+    {
+      path: '/signup',
+      name: 'SignUp',
+      component: SignUp,
+    },
+    {
+      path: '/reset-password',
+      name: 'Reset Password',
+      component: Sign_ResetPassword,
+    },
+    {
+      path: '/javer/:dni',
+      name: 'javer',
+      component: Javer,
+    },
+    {
+      path: '/javerim',
+      name: 'Javerim',
+      component: Javerim,
+    },
+  ],
 })
 
 export default router
