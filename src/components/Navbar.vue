@@ -30,8 +30,8 @@
               Stock
             </a>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#">Almacenes</a></li>
-              <li><a class="dropdown-item" href="#">Mover stock</a></li>
+              <li><a class="dropdown-item" href="/almacenes">Almacenes</a></li>
+              <li><a class="dropdown-item" href="/stock">Stock</a></li>
               <li><hr class="dropdown-divider" /></li>
               <li><a class="dropdown-item" href="#">Métricas</a></li>
             </ul>

@@ -5,6 +5,8 @@ import SignUp from '@/views/SignUp.vue'
 import Sign_ResetPassword from '@/views/Sign_ResetPassword.vue'
 import Javer from '@/views/Javer.vue'
 import Javerim from '@/views/Javerim.vue'
+import Almacenes from '@/views/Almacenes.vue'
+import Stock from '@/views/Stock.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,6 +40,16 @@ const router = createRouter({
       path: '/javerim',
       name: 'Javerim',
       component: Javerim,
+    },
+    {
+      path: '/almacenes',
+      name: 'almacenes',
+      component: Almacenes,
+    },
+    {
+      path: '/stock/',
+      name: 'stock',
+      component: Stock,
     },
   ],
 })
