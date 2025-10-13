@@ -16,9 +16,6 @@
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="/">Inicio</a>
-          </li>
           <li class="nav-item dropdown">
             <a
               class="nav-link dropdown-toggle"
@@ -38,6 +35,26 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/javerim">Nómina</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/presupuestos">Presupuestos</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a
+              class="nav-link dropdown-toggle"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              Hadrajá
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/hdrj_espacios">Espacios</a></li>
+              <li><a class="dropdown-item" href="/hdrj_terrenos">Terrenos</a></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><a class="dropdown-item" href="#">Métricas</a></li>
+            </ul>
           </li>
         </ul>
 

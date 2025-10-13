@@ -1,270 +1,254 @@
 <template>
-  <div class="container mt-4">
-    <div
-      v-if="loading"
-      class="d-flex justify-content-center align-items-center"
-      style="height: 60vh"
-    >
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Cargando...</span>
-      </div>
+  <div v-if="loading" class="d-flex justify-content-center align-items-center" style="height: 60vh">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
     </div>
-    <div v-else>
-      <!-- Header -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Stocks</h2>
-        <button class="btn btn-success" @click="openAddStockModal">
-          <i class="bi bi-plus-circle"></i> Añadir
-        </button>
-      </div>
+  </div>
+  <div v-else class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+      <h1 class="col-10">Stocks</h1>
+      <button class="btn btn-success col" @click="openAddStockModal">
+        <i class="bi bi-plus-circle"></i> Añadir
+      </button>
+    </div>
 
-      <!-- Almacenes -->
-      <main class="row accordion" id="almacenes">
-        <section
-          class="accordion"
-          :id="'almacen' + index"
-          v-for="(alm, index) in almacenes"
-          :key="alm.id_depot"
-        >
-          <div class="accordion-item mb-3">
-            <h2 class="accordion-header">
-              <button
-                class="accordion-button"
-                type="button"
-                data-bs-toggle="collapse"
-                :data-bs-target="'#almacenCollapse-' + index"
-                aria-expanded="false"
-                :aria-controls="'almacenCollapse-' + index"
-                style="font-weight: bold"
-              >
+    <!-- Almacenes -->
+    <main class="row mb-4 accordion" id="almacenes">
+      <section
+        class="accordion col-12"
+        :id="'almacen' + index"
+        v-for="(alm, index) in almacenes"
+        :key="alm.id_depot"
+      >
+        <div class="accordion-item mb-3">
+          <h2 class="accordion-header">
+            <button
+              class="accordion-button"
+              type="button"
+              data-bs-toggle="collapse"
+              :data-bs-target="'#almacenCollapse-' + index"
+              aria-expanded="false"
+              :aria-controls="'almacenCollapse-' + index"
+              style="font-weight: bold"
+            >
+              {{ alm.name }}
+            </button>
+          </h2>
+
+          <div :id="'almacenCollapse-' + index" class="accordion-collapse collapse">
+            <div class="accordion-body">
+              <table class="table table-striped align-middle">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Categoría</th>
+                    <th class="text-end">Cantidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(stk, sIndex) in getStocksByAlmacen(alm.id_depot)"
+                    :key="stk.id"
+                    @click="openEditStockModal(stk)"
+                    class="hover-effect"
+                  >
+                    <th scope="row">{{ sIndex + 1 }}</th>
+                    <td style="font-weight: bold">{{ stk.nombre }}</td>
+                    <td>{{ stk.descripcion }}</td>
+                    <td>{{ stk.categoria }}</td>
+                    <td class="text-end">{{ stk.cantidad }}</td>
+                  </tr>
+
+                  <tr v-if="getStocksByAlmacen(alm.id_depot).length === 0">
+                    <td colspan="5" class="text-center text-muted">Sin stock registrado</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- MODALS -->
+    <!-- Agregar stock -->
+    <Modal v-model="modal_add_stock">
+      <div class="container p-4">
+        <h5 class="row mb-3">Agregar stock</h5>
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+          <strong><i class="bi bi-exclamation-triangle-fill"></i> Atención!</strong> Este formulario
+          es únicamente para agregar stock. Si deseas mover stock entre almacenes, debes hacerlo
+          desde la sección de <strong>Movimientos</strong>.
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+        <form @submit.prevent="sendAddStockForm" class="row mb-3">
+          <div class="col-12 mb-3">
+            <label for="stk-alias" class="form-label">Alias</label>
+            <input
+              type="text"
+              class="form-control"
+              disabled
+              v-model="form_add_stock.alias"
+              id="stk-alias"
+              placeholder="STK:"
+            />
+          </div>
+          <div class="col-12 mb-3">
+            <label for="stk-nombre" class="form-label">Nombre</label>
+            <input
+              type="text"
+              class="form-control"
+              v-model="form_add_stock.nombre"
+              id="stk-nombre"
+              placeholder="Linternas..."
+              required
+            />
+          </div>
+          <div class="col-12 mb-3">
+            <label for="stk-descripcion" class="form-label">Descripción</label>
+            <textarea
+              type="text"
+              class="form-control"
+              v-model="form_add_stock.descripcion"
+              id="stk-descripcion"
+              placeholder="Linternas de 3000Lúmens Marca..."
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="stk-categoria" class="form-label">Categoría</label>
+            <select
+              id="stk-categoria"
+              v-model="form_add_stock.categoria"
+              class="form-select"
+              required
+            >
+              <option value="" disabled>Elegir categoría</option>
+              <option v-for="cat in Stock_Categories" :value="cat">{{ cat }}</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="stk-cantidad" class="form-label">Cantidad</label>
+            <input
+              type="number"
+              v-model="form_add_stock.cantidad"
+              class="form-control"
+              id="stk-cantidad"
+              placeholder="25..."
+              min="1"
+              required
+            />
+          </div>
+          <div class="col-12 mb-3">
+            <label for="stk-almacen" class="form-label">Almacén</label>
+            <select id="stk-almacen" v-model="form_add_stock.almacen" class="form-select" required>
+              <option value="" disabled>Elegir categoría</option>
+              <option v-for="alm in almacenes" :value="alm.id_depot" :key="alm.id_depot">
                 {{ alm.name }}
-              </button>
-            </h2>
-
-            <div :id="'almacenCollapse-' + index" class="accordion-collapse collapse">
-              <div class="accordion-body">
-                <table class="table table-striped align-middle">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Nombre</th>
-                      <th>Descripción</th>
-                      <th>Categoría</th>
-                      <th class="text-end">Cantidad</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="(stk, sIndex) in getStocksByAlmacen(alm.id_depot)"
-                      :key="stk.id"
-                      @click="openEditStockModal(stk)"
-                      class="cursor-pointer"
-                    >
-                      <th scope="row">{{ sIndex + 1 }}</th>
-                      <td style="font-weight: bold">{{ stk.nombre }}</td>
-                      <td>{{ stk.descripcion }}</td>
-                      <td>{{ stk.categoria }}</td>
-                      <td class="text-end">{{ stk.cantidad }}</td>
-                    </tr>
-
-                    <tr v-if="getStocksByAlmacen(alm.id_depot).length === 0">
-                      <td colspan="5" class="text-center text-muted">Sin stock registrado</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+              </option>
+            </select>
           </div>
-        </section>
-      </main>
+          <button type="submit" class="btn btn-success col-12 my-4">Añadir</button>
+        </form>
+      </div>
+    </Modal>
 
-      <!-- MODALS -->
-      <!-- Agregar stock -->
-      <Modal v-model="modal_add_stock">
-        <div class="container p-4">
-          <h5 class="row mb-3">Agregar stock</h5>
-          <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <strong><i class="bi bi-exclamation-triangle-fill"></i> Atención!</strong> Este
-            formulario es únicamente para agregar stock. Si deseas mover stock entre almacenes,
-            debes hacerlo desde la sección de <strong>Movimientos</strong>.
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="alert"
-              aria-label="Close"
-            ></button>
-          </div>
-          <form @submit.prevent="sendAddStockForm" class="row mb-3">
-            <div class="col-12 mb-3">
-              <label for="stk-alias" class="form-label">Alias</label>
-              <input
-                type="text"
-                class="form-control"
-                disabled
-                v-model="form_add_stock.alias"
-                id="stk-alias"
-                placeholder="STK:"
-              />
-            </div>
-            <div class="col-12 mb-3">
-              <label for="stk-nombre" class="form-label">Nombre</label>
-              <input
-                type="text"
-                class="form-control"
-                v-model="form_add_stock.nombre"
-                id="stk-nombre"
-                placeholder="Linternas..."
-                required
-              />
-            </div>
-            <div class="col-12 mb-3">
-              <label for="stk-descripcion" class="form-label">Descripción</label>
-              <textarea
-                type="text"
-                class="form-control"
-                v-model="form_add_stock.descripcion"
-                id="stk-descripcion"
-                placeholder="Linternas de 3000Lúmens Marca..."
-                rows="3"
-              ></textarea>
-            </div>
-            <div class="col-12 col-md-6 mb-3">
-              <label for="stk-categoria" class="form-label">Categoría</label>
-              <select
-                id="stk-categoria"
-                v-model="form_add_stock.categoria"
-                class="form-select"
-                required
-              >
-                <option value="" disabled>Elegir categoría</option>
-                <option v-for="cat in Stock_Categories" :value="cat">{{ cat }}</option>
-              </select>
-            </div>
-            <div class="col-12 col-md-6 mb-3">
-              <label for="stk-cantidad" class="form-label">Cantidad</label>
-              <input
-                type="number"
-                v-model="form_add_stock.cantidad"
-                class="form-control"
-                id="stk-cantidad"
-                placeholder="25..."
-                min="1"
-                required
-              />
-            </div>
-            <div class="col-12 mb-3">
-              <label for="stk-almacen" class="form-label">Almacén</label>
-              <select
-                id="stk-almacen"
-                v-model="form_add_stock.almacen"
-                class="form-select"
-                required
-              >
-                <option value="" disabled>Elegir categoría</option>
-                <option v-for="alm in almacenes" :value="alm.id_depot" :key="alm.id_depot">
-                  {{ alm.name }}
-                </option>
-              </select>
-            </div>
-            <button type="submit" class="btn btn-success col-12 my-4">Añadir</button>
-          </form>
+    <!-- Editar / eliminar stock -->
+    <Modal v-model="modal_edit_stock">
+      <div class="container p-4">
+        <h5 class="row mb-3">Editar stock</h5>
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+          <strong><i class="bi bi-exclamation-triangle-fill"></i> Atención!</strong> Este formulario
+          es únicamente para editar stock. Si deseas mover stock entre almacenes, debes hacerlo
+          desde la sección de <strong>Movimientos</strong>.
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
         </div>
-      </Modal>
 
-      <!-- Editar / eliminar stock -->
-      <Modal v-model="modal_edit_stock">
-        <div class="container p-4">
-          <h5 class="row mb-3">Editar stock</h5>
-          <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <strong><i class="bi bi-exclamation-triangle-fill"></i> Atención!</strong> Este
-            formulario es únicamente para editar stock. Si deseas mover stock entre almacenes, debes
-            hacerlo desde la sección de <strong>Movimientos</strong>.
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="alert"
-              aria-label="Close"
-            ></button>
+        <form @submit.prevent="sendEditStockForm" class="row mb-3">
+          <div class="col-12 mb-3">
+            <label for="stk-alias" class="form-label">Alias</label>
+            <input
+              type="text"
+              class="form-control"
+              disabled
+              v-model="form_edit_stock.alias"
+              id="stk-alias"
+              placeholder="STK:"
+            />
           </div>
-
-          <form @submit.prevent="sendEditStockForm" class="row mb-3">
-            <div class="col-12 mb-3">
-              <label for="stk-alias" class="form-label">Alias</label>
-              <input
-                type="text"
-                class="form-control"
-                disabled
-                v-model="form_edit_stock.alias"
-                id="stk-alias"
-                placeholder="STK:"
-              />
-            </div>
-            <div class="col-12 mb-3">
-              <label for="stk-nombre" class="form-label">Nombre</label>
-              <input
-                type="text"
-                class="form-control"
-                v-model="form_edit_stock.nombre"
-                id="stk-nombre"
-                placeholder="Linternas..."
-                required
-              />
-            </div>
-            <div class="col-12 mb-3">
-              <label for="stk-descripcion" class="form-label">Descripción</label>
-              <textarea
-                type="text"
-                class="form-control"
-                v-model="form_edit_stock.descripcion"
-                id="stk-descripcion"
-                placeholder="Linternas de 3000Lúmens Marca..."
-                rows="3"
-              ></textarea>
-            </div>
-            <div class="col-12 col-md-6 mb-3">
-              <label for="stk-categoria" class="form-label">Categoría</label>
-              <select
-                id="stk-categoria"
-                v-model="form_edit_stock.categoria"
-                class="form-select"
-                required
-              >
-                <option value="" disabled>Elegir categoría</option>
-                <option v-for="cat in Stock_Categories" :value="cat">{{ cat }}</option>
-              </select>
-            </div>
-            <div class="col-12 col-md-6 mb-3">
-              <label for="stk-cantidad" class="form-label">Cantidad</label>
-              <input
-                type="number"
-                v-model="form_edit_stock.cantidad"
-                class="form-control"
-                id="stk-cantidad"
-                placeholder="25..."
-                min="1"
-                required
-              />
-            </div>
-            <div class="col-12 mb-3">
-              <label for="stk-almacen" class="form-label">Almacén</label>
-              <select
-                id="stk-almacen"
-                v-model="form_edit_stock.almacen"
-                class="form-select"
-                required
-              >
-                <option value="" disabled>Elegir categoría</option>
-                <option v-for="alm in almacenes" :value="alm.id_depot" :key="alm.id_depot">
-                  {{ alm.name }}
-                </option>
-              </select>
-            </div>
-            <button type="submit" class="btn btn-primary col-12 mt-4 mb-2">Editar</button>
-            <button class="btn btn-danger col-12 mb-4">Eliminar</button>
-          </form>
-        </div>
-      </Modal>
-    </div>
+          <div class="col-12 mb-3">
+            <label for="stk-nombre" class="form-label">Nombre</label>
+            <input
+              type="text"
+              class="form-control"
+              v-model="form_edit_stock.nombre"
+              id="stk-nombre"
+              placeholder="Linternas..."
+              required
+            />
+          </div>
+          <div class="col-12 mb-3">
+            <label for="stk-descripcion" class="form-label">Descripción</label>
+            <textarea
+              type="text"
+              class="form-control"
+              v-model="form_edit_stock.descripcion"
+              id="stk-descripcion"
+              placeholder="Linternas de 3000Lúmens Marca..."
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="stk-categoria" class="form-label">Categoría</label>
+            <select
+              id="stk-categoria"
+              v-model="form_edit_stock.categoria"
+              class="form-select"
+              required
+            >
+              <option value="" disabled>Elegir categoría</option>
+              <option v-for="cat in Stock_Categories" :value="cat">{{ cat }}</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="stk-cantidad" class="form-label">Cantidad</label>
+            <input
+              type="number"
+              v-model="form_edit_stock.cantidad"
+              class="form-control"
+              id="stk-cantidad"
+              placeholder="25..."
+              min="1"
+              required
+            />
+          </div>
+          <div class="col-12 mb-3">
+            <label for="stk-almacen" class="form-label">Almacén</label>
+            <select id="stk-almacen" v-model="form_edit_stock.almacen" class="form-select" required>
+              <option value="" disabled>Elegir categoría</option>
+              <option v-for="alm in almacenes" :value="alm.id_depot" :key="alm.id_depot">
+                {{ alm.name }}
+              </option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary col-12 mt-4 mb-2">Editar</button>
+          <button class="btn btn-danger col-12 mb-4" @click="deleteStock">Eliminar</button>
+        </form>
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -329,7 +313,6 @@ async function sendAddStockForm() {
   try {
     const { data, error } = await supabase.from('Stocks').insert([form_add_stock.value])
     if (error) throw error
-    console.log(data)
   } catch (error) {
     console.error('Error al agregar stock:', error)
     toast.showToast('Error al agregar stock', 'error')
@@ -362,11 +345,7 @@ async function sendEditStockForm() {
   }
 }
 async function deleteStock() {
-  if (
-    !confirm('¿Estás seguro de que deseas eliminar este stock? Esta acción no se puede deshacer.')
-  ) {
-    return
-  }
+  if (!confirm('¿Estás seguro de que deseas eliminar este almacén?')) return
   try {
     const { data, error } = await supabase
       .from('Stocks')
@@ -386,7 +365,10 @@ async function deleteStock() {
 // 🔹 Cargar almacenes
 async function fetchAlmacenes() {
   try {
-    const { data, error } = await supabase.from('Almacenes').select('*')
+    const { data, error } = await supabase
+      .from('Almacenes')
+      .select('*')
+      .order('name', { ascending: true })
     if (error) throw error
     almacenes.value = data || []
   } catch (error) {
@@ -418,3 +400,7 @@ onMounted(async () => {
   loading.value = false
 })
 </script>
+
+<style scoped>
+@import url('/src/assets/css/main.css');
+</style>

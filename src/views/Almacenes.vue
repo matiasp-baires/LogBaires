@@ -1,10 +1,16 @@
 <template>
-  <div class="container p-4">
-    <div class="row">
-      <h1>
-        Almacenes
-        <span @click="modal_add = true" class="badge text-bg-primary cursor-pointer">Añadir</span>
-      </h1>
+  <div v-if="loading" class="d-flex justify-content-center align-items-center" style="height: 60vh">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  <div v-else class="container p-4">
+    <!-- Header -->
+    <div class="row mb-4">
+      <h1 class="col-10">Almacenes</h1>
+      <button class="btn btn-success col" @click="modal_add = true">
+        <i class="bi bi-plus-circle"></i> Añadir
+      </button>
     </div>
 
     <main id="almacenes" class="row g-3 p-2">
@@ -14,14 +20,17 @@
           <div class="card-body d-flex flex-column">
             <h5 class="card-title">{{ alm.name }}</h5>
             <p class="card-text">{{ alm.description }}</p>
-            <p class="card-text">
-              <i class="bi bi-geo-alt-fill"></i>
-              <a :href="geocode_link(alm.address)" target="_blank">{{ alm.address }}</a>
-            </p>
-            <div class="card-text mb-3">
-              <i class="bi bi-person-fill-gear"></i> {{ alm.responsable }}
-            </div>
-            <button @click="openEditModal(alm)" class="btn btn-primary mt-auto">Editar</button>
+
+            <footer class="mt-auto">
+              <div class="card-text">
+                <p>
+                  <i class="bi bi-geo-alt-fill"></i>
+                  <a :href="geocode_link(alm.address)" target="_blank">{{ alm.address }}</a>
+                </p>
+                <p><i class="bi bi-person-fill-gear"></i> {{ alm.responsable }}</p>
+              </div>
+              <button @click="openEditModal(alm)" class="btn btn-primary mt-1 w-100">Editar</button>
+            </footer>
           </div>
         </div>
       </div>
@@ -99,6 +108,7 @@ import toast from '@/stores/toast'
 const almacenes = ref([])
 const modal_edit = ref(false)
 const modal_add = ref(false)
+const loading = ref(true)
 
 const addForm = ref({
   name: '',
@@ -190,7 +200,10 @@ async function deleteAlmacen() {
 
 async function fetchAlmacenes() {
   try {
-    const { data, error } = await supabase.from('Almacenes').select('*')
+    const { data, error } = await supabase
+      .from('Almacenes')
+      .select('*')
+      .order('name', { ascending: true })
     almacenes.value = data || []
     if (error) throw error
   } catch (error) {
@@ -200,6 +213,7 @@ async function fetchAlmacenes() {
 
 onMounted(async () => {
   await fetchAlmacenes()
+  loading.value = false
 })
 </script>
 
