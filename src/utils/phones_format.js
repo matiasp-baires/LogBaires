@@ -1,4 +1,4 @@
-import { parsePhoneNumberFromString } from 'libphonenumber-js'
+import { formatNumber, parsePhoneNumberFromString } from 'libphonenumber-js'
 
 /**
  * Formatea un celular en base al código de país
@@ -31,6 +31,17 @@ export function getRawPhoneNumber(fullNumber, countryCode) {
     return phoneNumber.nationalNumber
   } catch (err) {
     console.error('Error obteniendo número puro:', err)
+    return null
+  }
+}
+
+export function getCountry(fullNumber) {
+  try {
+    const phoneNumber = parsePhoneNumberFromString(fullNumber)
+    if (!phoneNumber) return null
+    return phoneNumber.country
+  } catch (err) {
+    console.error('Error obteniendo código de país:', err)
     return null
   }
 }

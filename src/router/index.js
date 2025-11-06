@@ -7,8 +7,8 @@ import Javer from '@/views/Javer.vue'
 import Javerim from '@/views/Javerim.vue'
 import Almacenes from '@/views/Almacenes.vue'
 import Stock from '@/views/Stock.vue'
-import Presupuestos from '@/views/Presupuestos.vue'
 import Hdrj_Espacios from '@/views/Hdrj_Espacios.vue'
+import Hdrj_Instituciones from '@/views/Hdrj_Instituciones.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -54,14 +54,14 @@ const router = createRouter({
       component: Stock,
     },
     {
-      path: '/presupuestos/',
-      name: 'presupuestos',
-      component: Presupuestos,
-    },
-    {
       path: '/hdrj_espacios/',
       name: 'hdrj_espacios',
       component: Hdrj_Espacios,
+    },
+    {
+      path: '/hdrj_instituciones',
+      name: 'hdrj_instituciones',
+      component: Hdrj_Instituciones,
     },
   ],
 })

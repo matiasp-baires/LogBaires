@@ -29,15 +29,13 @@
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="/almacenes">Almacenes</a></li>
               <li><a class="dropdown-item" href="/stock">Stock</a></li>
+              <li><a class="dropdown-item" href="/stock">Movimientos</a></li>
               <li><hr class="dropdown-divider" /></li>
-              <li><a class="dropdown-item" href="#">Métricas</a></li>
+              <li><a class="dropdown-item disabled" href="#">Métricas</a></li>
             </ul>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/javerim">Nómina</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/presupuestos">Presupuestos</a>
           </li>
           <li class="nav-item dropdown">
             <a
@@ -51,9 +49,11 @@
             </a>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="/hdrj_espacios">Espacios</a></li>
-              <li><a class="dropdown-item" href="/hdrj_terrenos">Terrenos</a></li>
+              <li>
+                <a class="dropdown-item" href="/hdrj_instituciones">Instituciones</a>
+              </li>
               <li><hr class="dropdown-divider" /></li>
-              <li><a class="dropdown-item" href="#">Métricas</a></li>
+              <li><a class="dropdown-item disabled" href="#">Métricas</a></li>
             </ul>
           </li>
         </ul>
