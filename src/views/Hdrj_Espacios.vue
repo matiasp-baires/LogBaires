@@ -3,7 +3,13 @@
     <!-- Header -->
     <header class="row mb-4">
       <h1 class="col-10">HDRJ - Espacios</h1>
-      <button class="btn btn-success col" @click="openAddModal()">Añadir</button>
+      <button
+        v-if="can(['ADM', 'IT', 'HDRJ'])"
+        class="btn btn-success col fw-medium"
+        @click="openAddModal()"
+      >
+        Añadir
+      </button>
     </header>
 
     <!-- Loading -->
@@ -17,11 +23,11 @@
       </div>
     </div>
 
-    <main class="row mb-3 g-2">
-      <div class="col-md-6 mb-3" v-for="esp in espacios" :key="esp.id">
+    <main v-else-if="can(['HDRJ'])" class="row mb-3 g-2">
+      <div class="col-md-6 mb-3 hover-effect" v-for="esp in espacios" :key="esp.id">
         <div class="card h-100" :class="espacio_border(esp)" @dblclick="openEditModal(esp)">
           <div class="row g-0" style="height: 100%">
-            <div class="col-md-5 d-flex  align-items-stretch p-1">
+            <div class="col-md-5 d-flex align-items-stretch p-1">
               <img
                 :src="esp.pic || '/public/default_espacio.webp'"
                 class="img-fluid w-100 rounded-1 h-100 object-fit-cover"
@@ -35,16 +41,16 @@
                 <p class="card-text">
                   <i>{{ esp.referencia }}</i>
                 </p>
-                
-                <p class="card-text mt-auto mb-0">
-                    <p class="card-text">
-                      <i class="bi bi-stopwatch-fill"></i> <strong>Se libera</strong>:
-                      {{ formatDateTime(esp.se_libera) }}
-                    </p>
-                    <small class="text-body-secondary">
-                        Última actualización {{ formatDateTime(esp.actualizado) }}
-                    </small>
-                </p>
+
+                <div class="card-text mt-auto mb-0">
+                  <div class="card-text">
+                    <i class="bi bi-stopwatch-fill"></i> <strong>Se libera</strong>:
+                    {{ formatDateTime(esp.se_libera) }}
+                  </div>
+                  <small class="text-body-secondary">
+                    Última actualización {{ formatDateTime(esp.actualizado) }}
+                  </small>
+                </div>
               </div>
             </div>
           </div>
@@ -52,105 +58,188 @@
       </div>
     </main>
 
+    <div v-else class="alert alert-danger" role="alert">No puedes acceder a este contenido.</div>
+
     <div v-if="!loading && espacios.length === 0" class="alert alert-info" role="alert">
       No hay espacios registrados.
     </div>
 
     <!-- Modals -->
     <Modal v-model="modal_add_espacio">
-        <div class="container p-4">
-            <h4 class="row">Agregar espacio</h4>
-            <form class="row" @submit.prevent="submitAddForm()">
-                <div class="col-12 mb-3">
-                    <label for="esp-nombre" class="form-label">Nombre del espacio <span class="text-danger">*</span></label>
-                    <input type="text" v-model="esp_nombre" class="form-control" id="esp-nombre" placeholder="Gimnasio #2">
-                </div>
-                <div class="col-12 mb-3">
-                    <label for="esp-referencia" class="form-label">Refencia</label>
-                    <textarea type="text" v-model="esp_referencia" class="form-control" id="esp-referencia" rows="3" placeholder="2°P yendo por las escaleras"></textarea>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="esp-libera" class="form-label">¿Cuando se libera?</label>
-                    <input type="datetime-local" v-model="esp_se_libera" class="form-control" id="esp-libera" >
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="esp-actualizacion" class="form-label">Última actualización</label>
-                    <input type="text" :placeholder="esp_actualizado ? formatDateTime(esp_actualizado) : 'Sin registro'" disabled class="form-control" id="esp-actualizacion">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="esp-institucion" class="form-label">Institución <span class="text-danger">*</span></label>
-                    <select class="form-select" v-model="esp_institucion" id="esp-institucion">
-                        <option v-for="inst in instituciones" :key="inst.id" :value="inst.id">{{ inst.name }}</option>
-                    </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="esp-javer" class="form-label">¿Quién actualizó?</label>
-                    <input type="text" disabled class="form-control" id="esp-javer" :placeholder="javer ? `${javer.nombre} ${javer.apellido} ${javer.apodo ? ' - '+javer.apodo : ''}` : 'No identificado'">
-                </div>
-                <div class="col-12 mb-3">
-                    <label for="esp-imagen" class="form-label">Imagen del espacio</label>
-                    <input 
-                      type="file" 
-                      class="form-control" 
-                      id="esp-imagen" 
-                      @change="handleImageChange"
-                      accept="image/*">
-                </div>
-                <div class="col-12 mt-5 mb-3">
-                  <button class="btn btn-primary w-100" type="submit">Guardar</button>
-                </div>
-            </form>
-        </div>
+      <div class="container p-4">
+        <h4 class="row">Agregar espacio</h4>
+        <form class="row" @submit.prevent="submitAddForm()">
+          <div class="col-12 mb-3">
+            <label for="esp-nombre" class="form-label"
+              >Nombre del espacio <span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              v-model="esp_nombre"
+              class="form-control"
+              id="esp-nombre"
+              placeholder="Gimnasio #2"
+            />
+          </div>
+          <div class="col-12 mb-3">
+            <label for="esp-referencia" class="form-label">Refencia</label>
+            <textarea
+              type="text"
+              v-model="esp_referencia"
+              class="form-control"
+              id="esp-referencia"
+              rows="3"
+              placeholder="2°P yendo por las escaleras"
+            ></textarea>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="esp-libera" class="form-label">¿Cuando se libera?</label>
+            <input
+              type="datetime-local"
+              v-model="esp_se_libera"
+              class="form-control"
+              id="esp-libera"
+            />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="esp-actualizacion" class="form-label">Última actualización</label>
+            <input
+              type="text"
+              :placeholder="esp_actualizado ? formatDateTime(esp_actualizado) : 'Sin registro'"
+              disabled
+              class="form-control"
+              id="esp-actualizacion"
+            />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="esp-institucion" class="form-label"
+              >Institución <span class="text-danger">*</span></label
+            >
+            <select class="form-select" v-model="esp_institucion" id="esp-institucion">
+              <option v-for="inst in instituciones" :key="inst.id" :value="inst.id">
+                {{ inst.name }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="esp-javer" class="form-label">¿Quién actualizó?</label>
+            <input
+              type="text"
+              disabled
+              class="form-control"
+              id="esp-javer"
+              :placeholder="
+                javer
+                  ? `${javer.nombre} ${javer.apellido} ${javer.apodo ? ' - ' + javer.apodo : ''}`
+                  : 'No identificado'
+              "
+            />
+          </div>
+          <div class="col-12 mb-3">
+            <label for="esp-imagen" class="form-label">Imagen del espacio</label>
+            <input
+              type="file"
+              class="form-control"
+              id="esp-imagen"
+              @change="handleImageChange"
+              accept="image/*"
+            />
+          </div>
+          <div class="col-12 mt-5 mb-3">
+            <button class="btn btn-primary w-100" type="submit">Guardar</button>
+          </div>
+        </form>
+      </div>
     </Modal>
 
     <!-- Modal Editar -->
     <Modal v-model="modal_edit_espacio">
-        <div class="container p-4">
-            <h4 class="row">Editar espacio</h4>
-            <form class="row" @submit.prevent="submitEditForm()">
-                <div class="col-12 mb-3">
-                    <label for="esp-nombre-edit" class="form-label">Nombre del espacio <span class="text-danger">*</span></label>
-                    <input type="text" v-model="esp_nombre" class="form-control" id="esp-nombre-edit" placeholder="Gimnasio #2">
-                </div>
-                <div class="col-12 mb-3">
-                    <label for="esp-referencia-edit" class="form-label">Refencia</label>
-                    <textarea type="text" v-model="esp_referencia" class="form-control" id="esp-referencia-edit" rows="3" placeholder="2°P yendo por las escaleras"></textarea>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="esp-libera-edit" class="form-label">¿Cuando se libera?</label>
-                    <input type="datetime-local" v-model="esp_se_libera" class="form-control" id="esp-libera-edit" >
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="esp-actualizacion-edit" class="form-label">Última actualización</label>
-                    <input type="text" :placeholder="esp_actualizado ? formatDateTime(esp_actualizado)  : 'Sin registro'" disabled class="form-control" id="esp-actualizacion-edit">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="esp-institucion-edit" class="form-label">Institución <span class="text-danger">*</span></label>
-                    <select class="form-select" v-model="esp_institucion" id="esp-institucion-edit">
-                        <option v-for="inst in instituciones" :key="inst.id" :value="inst.id">{{ inst.name }}</option>
-                    </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="esp-javer-edit" class="form-label">¿Quién actualizó?</label>
-                    <input type="text" disabled class="form-control" id="esp-javer-edit" :placeholder="javer ? `${javer.nombre} ${javer.apellido} ${javer.apodo ? ' - '+javer.apodo : ''}` : 'No identificado'">
-                </div>
-                <div class="col-12 mb-3">
-                    <label for="esp-imagen-edit" class="form-label">Imagen del espacio</label>
-                    <input 
-                      type="file" 
-                      class="form-control" 
-                      id="esp-imagen-edit" 
-                      @change="handleImageChange"
-                      accept="image/*">
-                </div>
-                <div class="col-12 mt-5 mb-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary flex-grow-1">Actualizar</button>
-                    <button type="button" @click="deleteEspacio" class="btn btn-danger">Eliminar</button>
-                </div>
-            </form>
-        </div>
+      <div class="container p-4">
+        <h4 class="row">Editar espacio</h4>
+        <form class="row" @submit.prevent="submitEditForm()">
+          <div class="col-12 mb-3">
+            <label for="esp-nombre-edit" class="form-label"
+              >Nombre del espacio <span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              v-model="esp_nombre"
+              class="form-control"
+              id="esp-nombre-edit"
+              placeholder="Gimnasio #2"
+            />
+          </div>
+          <div class="col-12 mb-3">
+            <label for="esp-referencia-edit" class="form-label">Refencia</label>
+            <textarea
+              type="text"
+              v-model="esp_referencia"
+              class="form-control"
+              id="esp-referencia-edit"
+              rows="3"
+              placeholder="2°P yendo por las escaleras"
+            ></textarea>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="esp-libera-edit" class="form-label">¿Cuando se libera?</label>
+            <input
+              type="datetime-local"
+              v-model="esp_se_libera"
+              class="form-control"
+              id="esp-libera-edit"
+            />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="esp-actualizacion-edit" class="form-label">Última actualización</label>
+            <input
+              type="text"
+              :placeholder="esp_actualizado ? formatDateTime(esp_actualizado) : 'Sin registro'"
+              disabled
+              class="form-control"
+              id="esp-actualizacion-edit"
+            />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="esp-institucion-edit" class="form-label"
+              >Institución <span class="text-danger">*</span></label
+            >
+            <select class="form-select" v-model="esp_institucion" id="esp-institucion-edit">
+              <option v-for="inst in instituciones" :key="inst.id" :value="inst.id">
+                {{ inst.name }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="esp-javer-edit" class="form-label">¿Quién actualizó?</label>
+            <input
+              type="text"
+              disabled
+              class="form-control"
+              id="esp-javer-edit"
+              :placeholder="
+                javer
+                  ? `${javer.nombre} ${javer.apellido} ${javer.apodo ? ' - ' + javer.apodo : ''}`
+                  : 'No identificado'
+              "
+            />
+          </div>
+          <div class="col-12 mb-3">
+            <label for="esp-imagen-edit" class="form-label">Imagen del espacio</label>
+            <input
+              type="file"
+              class="form-control"
+              id="esp-imagen-edit"
+              @change="handleImageChange"
+              accept="image/*"
+            />
+          </div>
+          <div class="col-12 mt-5 mb-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-grow-1">Actualizar</button>
+            <button type="button" @click="deleteEspacio" class="btn btn-danger">Eliminar</button>
+          </div>
+        </form>
+      </div>
     </Modal>
-
   </div>
 </template>
 
@@ -161,18 +250,12 @@ import Modal from '@/components/Modal.vue'
 import toast from '@/stores/toast'
 import { formatDateTime } from '@/utils/formatDate'
 import { useFormImage } from '@/composables/useFormImage'
+import { useRoles } from '@/services/roles'
+const { loading, hasRole, hasAny, can } = useRoles()
 
-const { 
-  imagePreview,
-  handleImageChange,
-  uploadImage,
-  updateImage,
-  deleteImage,
-  clearImage
-} = useFormImage('Espacios')
+const { imagePreview, handleImageChange, uploadImage, updateImage, deleteImage, clearImage } =
+  useFormImage('Espacios')
 
-
-const loading = ref(true)
 const espacios = ref([])
 const instituciones = ref([])
 const user = ref(null) // objeto de supabase.auth
@@ -220,9 +303,9 @@ async function fetchEspacios() {
 async function fetchInstituciones() {
   try {
     const { data, error } = await supabase
-        .from('Hdrj_Instituciones')
-        .select('*')
-        .order('name', { ascending: true })
+      .from('Hdrj_Instituciones')
+      .select('*')
+      .order('name', { ascending: true })
     instituciones.value = data || []
     if (error) throw error
   } catch (error) {
@@ -238,7 +321,7 @@ async function submitAddForm() {
 
   try {
     const now = new Date().toISOString()
-    
+
     // Subir imagen si existe
     const imageResult = await uploadImage()
 
@@ -250,7 +333,7 @@ async function submitAddForm() {
       actualizado: now,
       actualizado_javer: javer.value?.id_jvr || null,
       pic: imageResult?.url || null,
-      pic_path: imageResult?.path || null
+      pic_path: imageResult?.path || null,
     }
 
     const { error } = await supabase.from('Hdrj_Espacios').insert([payload])
@@ -277,7 +360,6 @@ function resetForm() {
   currentEspacio.value = null
 }
 
-
 function openAddModal() {
   resetForm()
   modal_add_espacio.value = true
@@ -302,7 +384,7 @@ async function submitEditForm() {
 
   try {
     const now = new Date().toISOString()
-    
+
     // Actualizar imagen si hay una nueva
     const imageResult = await updateImage(currentEspacio.value?.pic_path)
 
@@ -314,7 +396,7 @@ async function submitEditForm() {
       actualizado: now,
       actualizado_javer: javer.value?.id_jvr || null,
       pic: imageResult?.url || currentEspacio.value?.pic,
-      pic_path: imageResult?.path || currentEspacio.value?.pic_path
+      pic_path: imageResult?.path || currentEspacio.value?.pic_path,
     }
 
     const { error } = await supabase
@@ -363,7 +445,6 @@ async function deleteEspacio() {
 }
 
 onMounted(async () => {
-  loading.value = true
   await fetchInstituciones()
   await fetchEspacios()
 
@@ -371,24 +452,23 @@ onMounted(async () => {
   const { data } = await supabase.auth.getUser()
   user.value = data.user || null
 
-    if (user.value) {
-        // Buscar el dni en tabla Javerim
-        const { data, error } = await supabase
-        .from('Javerim')
-        .select('id_jvr, nombre,apellido, apodo')
-        .eq('id_auth', user.value.id) // id de auth.users
-        .single()
+  if (user.value) {
+    // Buscar el dni en tabla Javerim
+    const { data, error } = await supabase
+      .from('Javerim')
+      .select('id_jvr, nombre,apellido, apodo')
+      .eq('id_auth', user.value.id) // id de auth.users
+      .single()
 
-        if (!error && data) {
-        javer.value = data
-        }
-
+    if (!error && data) {
+      javer.value = data
     }
-  loading.value = false
+  }
 })
 </script>
 
 <style scoped>
+@import url(/src/assets/css/main.css);
 .shadow-danger {
   box-shadow: 0 0 10px rgba(220, 53, 69, 0.7); /* rojo bootstrap */
 }
@@ -403,6 +483,4 @@ onMounted(async () => {
 .shadow {
   box-shadow: 0 0 10px rgba(60, 60, 56, 0.7); /* verde bootstrap */
 }
-
-
 </style>

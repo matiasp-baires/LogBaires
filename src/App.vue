@@ -10,14 +10,13 @@
 </template>
 
 <script setup>
-import { useAuthStore } from './stores/auth'
 import Navbar from './components/Navbar.vue'
 import Toast from './components/Toast.vue'
 import toast from './stores/toast'
-
-const auth = useAuthStore()
-auth.fetchUser()
-auth.listenToAuth()
+import { useRoles } from '@/services/roles'
+const { isGuest } = useRoles()
+if (isGuest.value) {
+  console.warn('The user is a guest (has no roles assigned).')
+  toast.showToast('No estás validado, tendrás acceso restringido', 'info')
+}
 </script>
-
-<style scoped></style>

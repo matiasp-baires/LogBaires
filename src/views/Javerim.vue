@@ -13,7 +13,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="j in javerim" :key="j.id">
+        <tr v-for="j in javerim" :key="j.id" class="hover-effect">
           <td>{{ j.nombre }}</td>
           <td>{{ j.apellido }}</td>
           <td>{{ j.email }}</td>
@@ -45,3 +45,7 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+@import url(/src/assets/css/main.css);
+</style>

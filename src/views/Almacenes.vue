@@ -8,14 +8,12 @@
     <!-- Header -->
     <div class="row mb-4">
       <h1 class="col-10">Almacenes</h1>
-      <button class="btn btn-success col" @click="modal_add = true">
-        <i class="bi bi-plus-circle"></i> Añadir
-      </button>
+      <button class="btn btn-success col fw-medium" @click="modal_add = true">Añadir</button>
     </div>
 
     <main id="almacenes" class="row g-3 p-2">
       <div class="col-12 col-md-4" v-for="alm in almacenes" :key="alm.id">
-        <div class="almacen card h-100 p-1 justify-between">
+        <div class="almacen card h-100 p-1 justify-between hover-effect">
           <img :src="alm.pic" class="card-img-top" :alt="alm.name" />
           <div class="card-body d-flex flex-column">
             <h5 class="card-title">{{ alm.name }}</h5>
@@ -218,6 +216,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+@import url(/src/assets/css/main.css);
 .card-img-top {
   height: 200px;
   object-fit: cover;

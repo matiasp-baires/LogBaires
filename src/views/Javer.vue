@@ -3,13 +3,24 @@
     <div class="card">
       <div class="card-body">
         <h4 class="card-title">
-          {{ javer.nombre }} {{ javer.apellido }} {{ '(' & javer.apodo & ')' || '' }}
+          {{ javer.nombre }} {{ javer.apellido }} {{ javer.apodo ? ' - ' + javer.apodo : '' }}
         </h4>
         <p class="card-text"><strong>DNI:</strong> {{ javer.dni }}</p>
-        <p class="card-text"><strong>Email:</strong> {{ javer.email }}</p>
         <p class="card-text">
-          <strong>Celular:</strong>
-          {{ parsePhoneNumberFromString(javer.celular).formatInternational('INTERNATIONAL') }}
+          <strong>Email:</strong> <a :href="'mailto:' + javer.email">{{ javer.email }}</a>
+        </p>
+        <p class="card-text">
+          <strong>Celular: </strong>
+          <a
+            :href="
+              'http://wa.me/' +
+              parsePhoneNumberFromString(javer.celular).format('E.164').replace('+', '')
+            "
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ parsePhoneNumberFromString(javer.celular).formatInternational('INTERNATIONAL') }}
+          </a>
         </p>
         <hr />
         <p class="card-text">

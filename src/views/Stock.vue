@@ -8,35 +8,95 @@
     <!-- Header -->
     <div class="row mb-4">
       <h1 class="col-10">Stocks</h1>
-      <button class="btn btn-success col" @click="openAddStockModal">
-        <i class="bi bi-plus-circle"></i> Añadir
-      </button>
+      <button class="btn btn-success col fw-medium" @click="openAddStockModal">Añadir</button>
     </div>
 
-    <!-- Almacenes -->
-    <main class="row mb-4 accordion" id="almacenes">
+    <!-- Almacenes HDRJ-->
+    <section v-if="can(['ADM', 'IT', 'HDRJ'])" class="row mb-4 accordion" id="almacenes1">
+      <h2>Almacén de HDRJ</h2>
       <section
         class="accordion col-12"
-        :id="'almacen' + index"
-        v-for="(alm, index) in almacenes"
+        :id="'almacen1' + index"
+        v-for="(alm, index) in almacenesHDRJ"
         :key="alm.id_depot"
       >
         <div class="accordion-item mb-3">
-          <h2 class="accordion-header">
+          <h3 class="accordion-header">
             <button
               class="accordion-button"
               type="button"
               data-bs-toggle="collapse"
-              :data-bs-target="'#almacenCollapse-' + index"
+              :data-bs-target="'#almacenCollapse1-' + index"
               aria-expanded="false"
-              :aria-controls="'almacenCollapse-' + index"
+              :aria-controls="'almacenCollapse1-' + index"
               style="font-weight: bold"
             >
               {{ alm.name }}
             </button>
-          </h2>
+          </h3>
 
-          <div :id="'almacenCollapse-' + index" class="accordion-collapse collapse">
+          <div :id="'almacenCollapse1-' + index" class="accordion-collapse collapse">
+            <div class="accordion-body">
+              <table class="table table-striped align-middle">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Categoría</th>
+                    <th class="text-end">Cantidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(stk, sIndex) in getStocksByAlmacen(alm.id_depot)"
+                    :key="stk.id"
+                    @click="openEditStockModal(stk)"
+                    class="hover-effect"
+                  >
+                    <th scope="row">{{ sIndex + 1 }}</th>
+                    <td style="font-weight: bold">{{ stk.nombre }}</td>
+                    <td>{{ stk.descripcion }}</td>
+                    <td>{{ stk.categoria }}</td>
+                    <td class="text-end">{{ stk.cantidad }}</td>
+                  </tr>
+
+                  <tr v-if="getStocksByAlmacen(alm.id_depot).length === 0">
+                    <td colspan="5" class="text-center text-muted">Sin stock registrado</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Almacenes Log-->
+    <main v-if="can(['ADM', 'IT', 'LOG', 'HBTJ'])" class="row mb-4 accordion" id="almacenes2">
+      <h2>Almacén de LOG y HBTJ</h2>
+      <section
+        class="accordion col-12"
+        :id="'almacen2' + index"
+        v-for="(alm, index) in almacenesLog"
+        :key="alm.id_depot"
+      >
+        <div class="accordion-item mb-3">
+          <h3 class="accordion-header">
+            <button
+              class="accordion-button"
+              type="button"
+              data-bs-toggle="collapse"
+              :data-bs-target="'#almacenCollapse2-' + index"
+              aria-expanded="false"
+              :aria-controls="'almacenCollapse2-' + index"
+              style="font-weight: bold"
+            >
+              {{ alm.name }}
+            </button>
+          </h3>
+
+          <div :id="'almacenCollapse2-' + index" class="accordion-collapse collapse">
             <div class="accordion-body">
               <table class="table table-striped align-middle">
                 <thead>
@@ -151,7 +211,7 @@
             <label for="stk-almacen" class="form-label">Almacén</label>
             <select id="stk-almacen" v-model="form_add_stock.almacen" class="form-select" required>
               <option value="" disabled>Elegir categoría</option>
-              <option v-for="alm in almacenes" :value="alm.id_depot" :key="alm.id_depot">
+              <option v-for="alm in almacenesLog" :value="alm.id_depot" :key="alm.id_depot">
                 {{ alm.name }}
               </option>
             </select>
@@ -239,7 +299,7 @@
             <label for="stk-almacen" class="form-label">Almacén</label>
             <select id="stk-almacen" v-model="form_edit_stock.almacen" class="form-select" required>
               <option value="" disabled>Elegir categoría</option>
-              <option v-for="alm in almacenes" :value="alm.id_depot" :key="alm.id_depot">
+              <option v-for="alm in almacenesLog" :value="alm.id_depot" :key="alm.id_depot">
                 {{ alm.name }}
               </option>
             </select>
@@ -253,18 +313,42 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { supabase } from '@/services/supabase'
 import toast from '@/stores/toast'
 import Modal from '@/components/Modal.vue'
 import { Stock_Categories } from '@/utils/globals/Stock_Categories'
 import { Set_Stock_Alias } from '@/utils/globals/Stock_Alias'
+import { useRoles } from '@/services/roles'
+// Avoid name collision: roles provides a loading state for roles; we need a local
+// loading flag to control the page spinner lifecycle.
+const { loading: rolesLoading, hasRole, can } = useRoles()
+const loading = ref(true)
 
 const almacenes = ref([])
 const stocks = ref([])
 const modal_add_stock = ref(false)
 const modal_edit_stock = ref(false)
-const loading = ref(true)
+
+// Computed filters: almacenes HDRJ-only (category array contains exclusively 'HDRJ')
+// and almacenes Log (todos los almacenes que NO contienen 'HDRJ' en su array de category)
+const almacenesHDRJ = computed(() => {
+  return almacenes.value.filter((a) => {
+    const raw = a.category ?? a.categoria ?? []
+    const cats = Array.isArray(raw) ? raw : typeof raw === 'string' ? [raw] : []
+    // solo HDRJ si todas las categorías son 'HDRJ' y hay al menos una
+    return cats.length > 0 && cats.every((c) => c === 'HDRJ')
+  })
+})
+
+const almacenesLog = computed(() => {
+  return almacenes.value.filter((a) => {
+    const raw = a.category ?? a.categoria ?? []
+    const cats = Array.isArray(raw) ? raw : typeof raw === 'string' ? [raw] : []
+    // incluir en Log solo si NO incluye 'HDRJ' en las categorías
+    return !cats.includes('HDRJ')
+  })
+})
 
 const form_add_stock = ref({
   alias: null,
@@ -283,6 +367,7 @@ const form_edit_stock = ref({
   cantidad: 1,
   almacen: null,
 })
+
 // 🔹 Actualiza alias cada vez que cambian nombre o categoría
 watch(
   () => [form_add_stock.value.nombre, form_add_stock.value.categoria],
@@ -327,7 +412,6 @@ function openEditStockModal(stock) {
   form_edit_stock.value = { ...stock }
   modal_edit_stock.value = true
 }
-
 async function sendEditStockForm() {
   try {
     const { data, error } = await supabase
@@ -376,7 +460,6 @@ async function fetchAlmacenes() {
     toast.error('Error al cargar almacenes')
   }
 }
-
 // 🔹 Cargar stocks
 async function fetchStocks() {
   try {
@@ -395,9 +478,14 @@ function getStocksByAlmacen(id_depot) {
 }
 
 onMounted(async () => {
-  await fetchAlmacenes()
-  await fetchStocks()
-  loading.value = false
+  loading.value = true
+  try {
+    await fetchAlmacenes()
+
+    await fetchStocks()
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 

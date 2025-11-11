@@ -79,7 +79,7 @@ import { supabase } from '@/services/supabase'
 import router from '@/router'
 
 // utils
-import { phoneCountries } from '@/utils/phones_countries'
+import { phoneCountries } from '@/utils/globals/phones_countries'
 import { formatPhone } from '@/utils/phones_format'
 
 const email = ref('')

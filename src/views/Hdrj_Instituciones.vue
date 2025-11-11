@@ -3,7 +3,13 @@
     <!-- Header -->
     <header class="row mb-4">
       <h1 class="col-10">HDRJ - Instituciones</h1>
-      <button class="btn btn-success col" @click="modal_add_insti = true">Añadir</button>
+      <button
+        v-if="can(['ADM', 'IT', 'HDRJ'])"
+        class="btn btn-success col fw-medium"
+        @click="modal_add_insti = true"
+      >
+        Añadir
+      </button>
     </header>
 
     <!-- Loading -->
@@ -17,25 +23,37 @@
       </div>
     </div>
 
-    <main v-else class="row mb-3 g-2">
-      <div class="col-md-6 mb-3" v-for="inst in instituciones" :key="inst.id">
+    <main v-else-if="can(['HDRJ'])" class="row mb-3 g-2">
+      <div class="col-md-6 mb-3 hover-effect" v-for="inst in instituciones" :key="inst.id">
         <div class="card h-100">
           <div class="row g-0" style="height: 100%">
             <div class="col d-flex">
               <div class="card-body d-flex flex-column flex-grow-1">
                 <h5 class="card-title">{{ inst.name }}</h5>
                 <h6 class="card-title">
-                    <a :href="geocode_link(inst.address)" target="_blank" rel="noopener noreferrer">
-                        <i class="bi bi-geo-alt-fill"></i> {{ inst.address }}
-                    </a>
+                  <a :href="geocode_link(inst.address)" target="_blank" rel="noopener noreferrer">
+                    <i class="bi bi-geo-alt-fill"></i> {{ inst.address }}
+                  </a>
                 </h6>
-                <p class="card-text mt-3">
-                  <p class="text-secondary">
-                    <a :href="'https://wa.me/'+formatPhone(inst.contact_phone.toString(), getCountry(inst.contact_phone), 'E.164')" target="_blank">
-                        {{ inst.contact_name }} {{ inst.contact_rol ? '('+inst.contact_rol + ')' : '' }}: {{ formatPhone( inst.contact_phone.toString(), 'AR', 'INTERNATIONAL' )}}
+                <div class="card-text mt-3">
+                  <div class="text-secondary">
+                    <a
+                      :href="
+                        'https://wa.me/' +
+                        formatPhone(
+                          inst.contact_phone.toString(),
+                          getCountry(inst.contact_phone),
+                          'E.164',
+                        )
+                      "
+                      target="_blank"
+                    >
+                      {{ inst.contact_name }}
+                      {{ inst.contact_rol ? '(' + inst.contact_rol + ')' : '' }}:
+                      {{ formatPhone(inst.contact_phone.toString(), 'AR', 'INTERNATIONAL') }}
                     </a>
-                  </p>
-                </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -43,50 +61,90 @@
       </div>
     </main>
 
+    <div v-else class="alert alert-danger" role="alert">No puedes acceder a este contenido.</div>
+
     <div v-if="!loading && instituciones.length === 0" class="alert alert-info" role="alert">
       No hay instituciones registradas.
     </div>
 
     <!-- Modals -->
     <Modal v-model="modal_add_insti">
-        <div class="container p-4">
-            <h4>Añadir Institución</h4>
-            
-            <form class="row" @submit.prevent="submitAddForm()">
-                <div class="mb-3 col-12">
-                    <label for="inst_name" class="form-label">Nombre</label>
-                    <input type="text" v-model="inst_name" required class="form-control" id="inst_name" placeholder="Colegio..." />
-                </div>
+      <div class="container p-4">
+        <h4>Añadir Institución</h4>
 
-                <div class="mb-3 col-12">
-                    <label for="inst_address" class="form-label">Dirección</label>
-                    <input type="text" v-model="inst_address" required class="form-control" id="inst_address" placeholder="Av. de Mayo 223..." />
-                </div>
+        <form class="row" @submit.prevent="submitAddForm()">
+          <div class="mb-3 col-12">
+            <label for="inst_name" class="form-label">Nombre</label>
+            <input
+              type="text"
+              v-model="inst_name"
+              required
+              class="form-control"
+              id="inst_name"
+              placeholder="Colegio..."
+            />
+          </div>
 
-                <h6 class="col-12 mt-3">Contacto de la institución</h6>
-                <div class="col-6">
-                    <label for="inst_contact_name" class="form-label">Nombre de contacto</label>
-                    <input type="text" v-model="inst_contact_name" class="form-control" id="inst_contact_name" />
-                </div>
-                <div class="col-6 mb-3">
-                    <label for="inst_contact_name" class="form-label">Cargo institucional</label>
-                    <input type="text" v-model="inst_contact_rol" class="form-control" id="inst_contact_rol" placeholder="Director..." />
-                </div>
-                <label class="form-label col-12" for="inst_contact_phone-phone">Teléfono de contacto</label>
-                <div class="col-12 input-group mb-3">
-                    <select class="form-select" v-model="inst_contact_phone_country" id="inst_contact_name-country">
-                        <option :value="pc.code" v-for="pc in phoneCountries" :key="pc.name">{{ pc.name }}</option>
-                    </select>
-                    <input type="tel" v-model="inst_contact_phone_phone" class="form-control" id="inst_contact_phone-phone" placeholder="1155443322" />
-                </div>
+          <div class="mb-3 col-12">
+            <label for="inst_address" class="form-label">Dirección</label>
+            <input
+              type="text"
+              v-model="inst_address"
+              required
+              class="form-control"
+              id="inst_address"
+              placeholder="Av. de Mayo 223..."
+            />
+          </div>
 
-                <div class="col-12 mt-3 d-flex justify-content-end">
-                    <button type="submit" class="btn btn-success w-100">Guardar</button>
-                </div>
-            </form>
-        </div> 
+          <h6 class="col-12 mt-3">Contacto de la institución</h6>
+          <div class="col-6">
+            <label for="inst_contact_name" class="form-label">Nombre de contacto</label>
+            <input
+              type="text"
+              v-model="inst_contact_name"
+              class="form-control"
+              id="inst_contact_name"
+            />
+          </div>
+          <div class="col-6 mb-3">
+            <label for="inst_contact_name" class="form-label">Cargo institucional</label>
+            <input
+              type="text"
+              v-model="inst_contact_rol"
+              class="form-control"
+              id="inst_contact_rol"
+              placeholder="Director..."
+            />
+          </div>
+          <label class="form-label col-12" for="inst_contact_phone-phone"
+            >Teléfono de contacto</label
+          >
+          <div class="col-12 input-group mb-3">
+            <select
+              class="form-select"
+              v-model="inst_contact_phone_country"
+              id="inst_contact_name-country"
+            >
+              <option :value="pc.code" v-for="pc in phoneCountries" :key="pc.name">
+                {{ pc.name }}
+              </option>
+            </select>
+            <input
+              type="tel"
+              v-model="inst_contact_phone_phone"
+              class="form-control"
+              id="inst_contact_phone-phone"
+              placeholder="1155443322"
+            />
+          </div>
+
+          <div class="col-12 mt-3 d-flex justify-content-end">
+            <button type="submit" class="btn btn-success w-100">Guardar</button>
+          </div>
+        </form>
+      </div>
     </Modal>
-
   </div>
 </template>
 
@@ -96,10 +154,10 @@ import { supabase } from '@/services/supabase'
 import Modal from '@/components/Modal.vue'
 import { formatPhone, getCountry } from '@/utils/phones_format'
 import { geocode_link } from '@/utils/geocoder'
-import { phoneCountries } from '@/utils/phones_countries'
+import { phoneCountries } from '@/utils/globals/phones_countries'
 import toast from '@/stores/toast'
-
-const loading = ref(true)
+import { useRoles } from '@/services/roles'
+const { loading, hasRole, can } = useRoles()
 const instituciones = ref([])
 const modal_add_insti = ref(false)
 const modal_edit_insti = ref(false)
@@ -112,13 +170,12 @@ const inst_contact_rol = ref('')
 const inst_contact_phone_country = ref('')
 const inst_contact_phone_phone = ref('')
 
-
 async function fetchInstituciones() {
   try {
     const { data, error } = await supabase
-        .from('Hdrj_Instituciones')
-        .select('*')
-        .order('name', { ascending: true })
+      .from('Hdrj_Instituciones')
+      .select('*')
+      .order('name', { ascending: true })
     instituciones.value = data || []
     if (error) throw error
   } catch (error) {
@@ -126,9 +183,9 @@ async function fetchInstituciones() {
   }
 }
 
-async function submitAddForm(){
+async function submitAddForm() {
   // Payload for the new institución - renamed to avoid shadowing the response `data`
-  const payload  = {
+  const payload = {
     id: crypto.randomUUID(),
     name: inst_name.value,
     address: inst_address.value,
@@ -137,34 +194,32 @@ async function submitAddForm(){
     contact_phone: inst_contact_phone_country.value + inst_contact_phone_phone.value,
   }
 
-  try{
+  try {
     // Destructure response into `inserted` to avoid name collision with `payload`
-    const { data: inserted, error } = await supabase
-    .from('Hdrj_Instituciones')
-    .insert([payload])
-    if(error) throw error
-
-  }catch(error){
+    const { data: inserted, error } = await supabase.from('Hdrj_Instituciones').insert([payload])
+    if (error) throw error
+  } catch (error) {
     console.error('Error adding institución:', error)
     toast.showToast('Error al añadir la institución', 'error')
-  }finally{
-        // Cerrar modal y resetear formulario
-        modal_add_insti.value = false
-        inst_name.value = ''
-        inst_address.value = ''
-        inst_contact_name.value = ''
-        inst_contact_rol.value = ''
-        inst_contact_phone_country.value = ''
-        inst_contact_phone_phone.value = ''
-        await fetchInstituciones()
-        toast.showToast('Institución añadida con éxito', 'success')
-    }
-
+  } finally {
+    // Cerrar modal y resetear formulario
+    modal_add_insti.value = false
+    inst_name.value = ''
+    inst_address.value = ''
+    inst_contact_name.value = ''
+    inst_contact_rol.value = ''
+    inst_contact_phone_country.value = ''
+    inst_contact_phone_phone.value = ''
+    await fetchInstituciones()
+    toast.showToast('Institución añadida con éxito', 'success')
+  }
 }
 
 onMounted(async () => {
-  loading.value = true
   await fetchInstituciones()
-  loading.value = false
 })
 </script>
+
+<style scoped>
+@import url(/src/assets/css/main.css);
+</style>

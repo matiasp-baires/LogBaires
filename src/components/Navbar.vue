@@ -15,7 +15,8 @@
       </button>
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <ul v-if="user && !isGuest && !loading" class="navbar-nav me-auto mb-2 mb-lg-0">
+          <!-- Mostrar solo si usuario está logueado Y tiene al menos 1 rol Y ya cargaron los roles -->
           <li class="nav-item dropdown">
             <a
               class="nav-link dropdown-toggle"
@@ -81,49 +82,45 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { supabase } from '@/services/supabase'
+import { useRoles } from '@/services/roles'
+import { useAuthStore } from '@/stores/auth'
+
+const { loading, hasRole, isGuest, can } = useRoles()
+const auth = useAuthStore()
 
 const route = useRoute()
 const router = useRouter()
-
-const user = ref(null) // objeto de supabase.auth
+// bind to central auth store so changes are consistent across tabs
+const user = computed(() => auth.user)
 const dni = ref(null) // dni desde la tabla Javerim
 
-onMounted(async () => {
-  // Obtener sesión actual
-  const { data } = await supabase.auth.getUser()
-  user.value = data.user || null
-
-  if (user.value) {
-    // Buscar el dni en tabla Javerim
-    const { data: javer, error } = await supabase
-      .from('Javerim')
-      .select('dni')
-      .eq('id_auth', user.value.id) // id de auth.users
-      .single()
-
-    if (!error && javer) {
-      dni.value = javer.dni
-    }
-  }
-
-  // Escuchar cambios en sesión
-  supabase.auth.onAuthStateChange(async (event, session) => {
-    user.value = session?.user || null
-    if (user.value) {
-      const { data: javer } = await supabase
-        .from('Javerim')
-        .select('dni')
-        .eq('id_auth', user.value.id)
-        .single()
-      dni.value = javer?.dni || null
+// Fetch dni when auth.user becomes available. Use a watcher instead of adding
+// another onAuthStateChange listener here to avoid duplicated listeners and
+// potential race conditions when switching tabs.
+watch(
+  () => auth.user,
+  async (newUser) => {
+    if (newUser) {
+      try {
+        const { supabase } = await import('@/services/supabase')
+        const { data: javer, error } = await supabase
+          .from('Javerim')
+          .select('dni')
+          .eq('id_auth', newUser.id)
+          .single()
+        dni.value = javer?.dni || null
+      } catch (e) {
+        console.error('Error fetching dni:', e)
+        dni.value = null
+      }
     } else {
       dni.value = null
     }
-  })
-})
+  },
+  { immediate: true },
+)
 
 // Saber si estoy en mi propio perfil
 const isOnOwnProfile = computed(() => {
@@ -131,6 +128,7 @@ const isOnOwnProfile = computed(() => {
 })
 
 const handleLogout = async () => {
+  const { supabase } = await import('@/services/supabase')
   await supabase.auth.signOut()
   router.push('/signin')
 }
