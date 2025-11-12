@@ -9,18 +9,16 @@ import router from './router'
 
 const app = createApp(App)
 
-app.use(createPinia())
+const pinia = createPinia()
+app.use(pinia)
 app.use(router)
 
 // initialize auth before mounting to avoid top-level async in components
 import { useAuthStore } from './stores/auth'
-
 ;(async () => {
-  // create pinia instance and register it so stores work when used here
-  const pinia = createPinia()
-  app.use(pinia)
-
   const auth = useAuthStore()
+  // First, restore from localStorage if available
+  auth.initializeFromStorage()
   try {
     await auth.fetchUser()
     if (auth.user) await auth.fetchRoles()

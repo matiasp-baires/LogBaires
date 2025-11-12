@@ -82,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useRoles } from '@/services/roles'
 import { useAuthStore } from '@/stores/auth'
@@ -95,6 +95,28 @@ const router = useRouter()
 // bind to central auth store so changes are consistent across tabs
 const user = computed(() => auth.user)
 const dni = ref(null) // dni desde la tabla Javerim
+
+// When tab regains focus, ensure roles are loaded from cache
+onMounted(() => {
+  const handleVisibilityChange = () => {
+    if (!document.hidden && auth.user && !auth.roles.length) {
+      // Tab became visible and roles are empty - restore from cache
+      const cachedRoles = localStorage.getItem('cached_roles')
+      if (cachedRoles) {
+        try {
+          auth.roles = JSON.parse(cachedRoles)
+          console.log('Navbar: Roles restored from cache on visibility change')
+        } catch (e) {
+          console.error('Failed to parse cached roles:', e)
+        }
+      }
+    }
+  }
+
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+
+  return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+})
 
 // Fetch dni when auth.user becomes available. Use a watcher instead of adding
 // another onAuthStateChange listener here to avoid duplicated listeners and

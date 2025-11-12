@@ -6,7 +6,7 @@
       <button
         v-if="can(['ADM', 'IT', 'HDRJ'])"
         class="btn btn-success col fw-medium"
-        @click="modal_add_insti = true"
+        @click="openAddModal()"
       >
         Añadir
       </button>
@@ -23,9 +23,9 @@
       </div>
     </div>
 
-    <main v-else-if="can(['HDRJ'])" class="row mb-3 g-2">
+    <main v-else-if="can(['ADM', 'IT', 'HDRJ'])" class="row mb-3 g-2">
       <div class="col-md-6 mb-3 hover-effect" v-for="inst in instituciones" :key="inst.id">
-        <div class="card h-100">
+        <div class="card h-100" @dblclick="openEditModal(inst)" style="cursor: pointer">
           <div class="row g-0" style="height: 100%">
             <div class="col d-flex">
               <div class="card-body d-flex flex-column flex-grow-1">
@@ -74,7 +74,7 @@
 
         <form class="row" @submit.prevent="submitAddForm()">
           <div class="mb-3 col-12">
-            <label for="inst_name" class="form-label">Nombre</label>
+            <label for="inst_name" class="form-label">Nombre<sup class="text-danger">*</sup></label>
             <input
               type="text"
               v-model="inst_name"
@@ -86,7 +86,9 @@
           </div>
 
           <div class="mb-3 col-12">
-            <label for="inst_address" class="form-label">Dirección</label>
+            <label for="inst_address" class="form-label"
+              >Dirección<sup class="text-danger">*</sup></label
+            >
             <input
               type="text"
               v-model="inst_address"
@@ -145,6 +147,95 @@
         </form>
       </div>
     </Modal>
+
+    <Modal v-model="modal_edit_insti">
+      <div class="container p-4">
+        <h4>Añadir Institución</h4>
+
+        <form class="row" @submit.prevent="submitEditForm(inst)">
+          <div class="mb-3 col-12">
+            <label for="inst_name" class="form-label">Nombre<sup class="text-danger">*</sup></label>
+            <input
+              type="text"
+              v-model="inst_name"
+              required
+              class="form-control"
+              id="inst_name"
+              placeholder="Colegio..."
+            />
+          </div>
+
+          <div class="mb-3 col-12">
+            <label for="inst_address" class="form-label"
+              >Dirección<sup class="text-danger">*</sup></label
+            >
+            <input
+              type="text"
+              v-model="inst_address"
+              required
+              class="form-control"
+              id="inst_address"
+              placeholder="Av. de Mayo 223..."
+            />
+          </div>
+
+          <h6 class="col-12 mt-3">Contacto de la institución</h6>
+          <div class="col-6">
+            <label for="inst_contact_name" class="form-label">Nombre de contacto</label>
+            <input
+              type="text"
+              v-model="inst_contact_name"
+              class="form-control"
+              id="inst_contact_name"
+            />
+          </div>
+          <div class="col-6 mb-3">
+            <label for="inst_contact_name" class="form-label">Cargo institucional</label>
+            <input
+              type="text"
+              v-model="inst_contact_rol"
+              class="form-control"
+              id="inst_contact_rol"
+              placeholder="Director..."
+            />
+          </div>
+          <label class="form-label col-12" for="inst_contact_phone-phone"
+            >Teléfono de contacto</label
+          >
+          <div class="col-12 input-group mb-3">
+            <select
+              class="form-select"
+              v-model="inst_contact_phone_country"
+              id="inst_contact_name-country"
+            >
+              <option :value="pc.code" v-for="pc in phoneCountries" :key="pc.name">
+                {{ pc.name }}
+              </option>
+            </select>
+            <input
+              type="tel"
+              v-model="inst_contact_phone_phone"
+              class="form-control"
+              id="inst_contact_phone-phone"
+              placeholder="1155443322"
+            />
+          </div>
+
+          <div class="col-12 mt-5 d-flex justify-self-end">
+            <button type="submit" class="btn btn-primary w-100">Actualizar</button>
+          </div>
+          <div class="col-12 mt-3 d-flex justify-self-end">
+            <button
+              type="button"
+              class="btn btn-danger w-100"
+              @click="deleteInstitucion(inst_id.value)"
+            >
+              Eliminar
+            </button>
+          </div>
+        </form>
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -163,6 +254,7 @@ const modal_add_insti = ref(false)
 const modal_edit_insti = ref(false)
 
 // Refs del formulario
+const inst_id = ref('')
 const inst_name = ref('')
 const inst_address = ref('')
 const inst_contact_name = ref('')
@@ -213,6 +305,93 @@ async function submitAddForm() {
     await fetchInstituciones()
     toast.showToast('Institución añadida con éxito', 'success')
   }
+}
+async function submitEditForm(inst) {
+  // Similar to submitAddForm but for editing an existing institución
+  // You would need to track which institución is being edited
+  const payload = {
+    id: inst_id.value,
+    name: inst_name.value,
+    address: inst_address.value,
+    contact_name: inst_contact_name.value,
+    contact_rol: inst_contact_rol.value,
+    contact_phone: inst_contact_phone_country.value + inst_contact_phone_phone.value,
+  }
+  try {
+    const { data: updated, error } = await supabase
+      .from('Hdrj_Instituciones')
+      .update(payload)
+      .eq('id', inst_id.value)
+    if (error) throw error
+  } catch (error) {
+    console.error('Error updating institución:', error)
+    toast.showToast('Error al actualizar la institución', 'error')
+  } finally {
+    modal_edit_insti.value = false
+    inst_id.value = ''
+    inst_name.value = ''
+    inst_address.value = ''
+    inst_contact_name.value = ''
+    inst_contact_rol.value = ''
+    inst_contact_phone_country.value = ''
+    inst_contact_phone_phone.value = ''
+    await fetchInstituciones()
+    toast.showToast('Institución actualizada con éxito', 'success')
+  }
+}
+async function deleteInstitucion(inst) {
+  if (
+    !confirm(
+      '¿Estás seguro de que deseas eliminar esta institución? Esta acción no se puede deshacer.',
+    )
+  ) {
+    return
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('Hdrj_Instituciones')
+      .delete()
+      .eq('id', inst_id.value)
+    if (error) throw error
+  } catch (error) {
+    console.error('Error deleting institución:', error)
+    toast.showToast('Error al eliminar la institución', 'error')
+  } finally {
+    modal_edit_insti.value = false
+    inst_id.value = ''
+    inst_name.value = ''
+    inst_address.value = ''
+    inst_contact_name.value = ''
+    inst_contact_rol.value = ''
+    inst_contact_phone_country.value = ''
+    inst_contact_phone_phone.value = ''
+    await fetchInstituciones()
+    toast.showToast('Institución eliminada con éxito', 'success')
+  }
+}
+
+function openAddModal() {
+  inst_name.value = ''
+  inst_address.value = ''
+  inst_contact_name.value = ''
+  inst_contact_rol.value = ''
+  inst_contact_phone_country.value = ''
+  inst_contact_phone_phone.value = ''
+  modal_add_insti.value = true
+}
+function openEditModal(inst) {
+  // Populate form fields with existing data
+  inst_id.value = inst.id
+  inst_name.value = inst.name
+  inst_address.value = inst.address
+  inst_contact_name.value = inst.contact_name
+  inst_contact_rol.value = inst.contact_rol
+  // Split contact_phone into country code and phone number
+  const countryCodeLength = inst.contact_phone.length - 10 // Assuming last 10 digits are the phone number
+  inst_contact_phone_country.value = inst.contact_phone.slice(0, countryCodeLength)
+  inst_contact_phone_phone.value = inst.contact_phone.slice(countryCodeLength)
+  modal_edit_insti.value = true
 }
 
 onMounted(async () => {

@@ -38,18 +38,106 @@ export const useAuthStore = defineStore('auth', {
     roles: [],
     rolesLoading: false,
   }),
+
+  getters: {
+    // Getter to always read from localStorage as fallback
+    getUserFromStorage: () => {
+      const cached = localStorage.getItem('auth_user_state')
+      return cached ? JSON.parse(cached) : null
+    },
+    getRolesFromStorage: () => {
+      const cached = localStorage.getItem('cached_roles')
+      return cached ? JSON.parse(cached) : []
+    },
+  },
+
   actions: {
+    // Initialize store - restore from localStorage on load
+    initializeFromStorage() {
+      const cachedUser = localStorage.getItem('auth_user_state')
+      const cachedRoles = localStorage.getItem('cached_roles')
+
+      if (cachedUser) {
+        this.user = JSON.parse(cachedUser)
+      }
+      if (cachedRoles) {
+        this.roles = JSON.parse(cachedRoles)
+      }
+    },
+
     async fetchUser() {
       const { data } = await supabase.auth.getUser()
       this.user = data.user
+      if (this.user) {
+        localStorage.setItem('auth_user_state', JSON.stringify(this.user))
+      }
     },
+
     listenToAuth() {
+      // Listen to auth state changes
       supabase.auth.onAuthStateChange(async (event, session) => {
         this.user = session?.user || null
         // when auth changes, refresh roles
-        if (this.user) await this.fetchRoles()
-        else {
+        if (this.user) {
+          // Save user state to localStorage for persistence across tabs
+          localStorage.setItem('auth_user_state', JSON.stringify(this.user))
+          localStorage.setItem('auth_user_id', this.user.id)
+          await this.fetchRoles()
+        } else {
           this.roles = []
+          localStorage.removeItem('auth_user_state')
+          localStorage.removeItem('auth_user_id')
+          localStorage.removeItem('cached_roles')
+        }
+      })
+
+      // Listen to storage changes from other tabs
+      window.addEventListener('storage', (event) => {
+        if (event.key === 'cached_roles' && event.newValue) {
+          // Roles were updated in another tab
+          try {
+            this.roles = JSON.parse(event.newValue)
+            console.log('Roles synchronized from another tab:', this.roles)
+          } catch (e) {
+            console.error('Failed to parse cached roles:', e)
+          }
+        }
+
+        if (event.key === 'auth_user_state' && event.newValue) {
+          // User was updated in another tab
+          try {
+            this.user = JSON.parse(event.newValue)
+            console.log('User synchronized from another tab')
+          } catch (e) {
+            console.error('Failed to parse cached user:', e)
+          }
+        }
+
+        if (event.key === 'auth_user_id') {
+          // Generic auth change detected - sync everything
+          if (event.newValue) {
+            this.initializeFromStorage()
+            // Refresh roles in background
+            if (this.user) this.fetchRoles()
+          } else {
+            // Logged out in another tab
+            this.user = null
+            this.roles = []
+            localStorage.removeItem('cached_roles')
+          }
+        }
+      })
+
+      // Listen to visibility changes - when tab regains focus, restore state
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden === false) {
+          // Tab became visible - restore state from localStorage
+          console.log('Tab is now visible - restoring state from localStorage')
+          this.initializeFromStorage()
+          // Verify and refresh roles from server
+          if (this.user) {
+            this.fetchRoles()
+          }
         }
       })
     },
@@ -75,10 +163,18 @@ export const useAuthStore = defineStore('auth', {
         const rolesRow = data && data.length ? data[0] : null
         // roles stored as array of strings in the database
         this.roles = rolesRow?.roles || []
+        // Cache roles in localStorage
+        localStorage.setItem('cached_roles', JSON.stringify(this.roles))
         return this.roles
       } catch (err) {
         console.error('fetchRoles error', err)
-        this.roles = []
+        // Don't clear roles on error - keep cached version
+        const cachedRoles = localStorage.getItem('cached_roles')
+        if (cachedRoles) {
+          this.roles = JSON.parse(cachedRoles)
+        } else {
+          this.roles = []
+        }
         return this.roles
       } finally {
         this.rolesLoading = false

@@ -24,6 +24,7 @@
 import { ref } from 'vue'
 import { supabase } from '@/services/supabase'
 import router from '@/router'
+import toast from '@/stores/toast'
 
 const email = ref('')
 const password = ref('')
@@ -34,9 +35,9 @@ const handleSignIn = async () => {
     password: password.value,
   })
   if (error) {
-    alert('Error: ' + error.message)
+    toast.showToast('Error al iniciar sesión: ' + error.message, 'error')
   } else {
-    alert('Sesión iniciada!')
+    toast.showToast('Sesión iniciada con éxito', 'success')
     router.push('/')
   }
 }
