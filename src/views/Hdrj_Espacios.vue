@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <main v-else-if="can(['HDRJ'])" class="row mb-3 g-2">
+    <main v-else-if="can(['ADM', 'IT', 'HDRJ'])" class="row mb-3 g-2">
       <div class="col-md-6 mb-3 hover-effect" v-for="esp in espacios" :key="esp.id">
         <div class="card h-100" :class="espacio_border(esp)" @dblclick="openEditModal(esp)">
           <div class="row g-0" style="height: 100%">
