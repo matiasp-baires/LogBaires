@@ -1,7 +1,16 @@
 <template>
   <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
-      <a class="navbar-brand" href="/">LogApp</a>
+      <a class="navbar-brand" href="/">
+        <img
+          src="/public/icon.png"
+          alt="Icon"
+          width="30"
+          height="24"
+          class="d-inline-block align-text-top"
+        />
+        LogApp
+      </a>
       <button
         class="navbar-toggler"
         type="button"
