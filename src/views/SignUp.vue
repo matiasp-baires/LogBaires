@@ -4,7 +4,7 @@
     <form @submit.prevent="handleSignUp" class="row mt-3">
       <!-- email + password -->
       <div class="col-md-6 mb-3">
-        <label>Email</label>
+        <label>Email <sup class="text-danger">*</sup></label>
         <input
           v-model="email"
           type="email"
@@ -12,17 +12,16 @@
           required
           placeholder="javer.baires@gmail.com"
         />
-        <sup class="text-danger">*</sup>
       </div>
       <div class="col-md-6 mb-3">
-        <label>Contraseña</label>
+        <label>Contraseña <sup class="text-danger">*</sup></label>
         <input v-model="password" type="password" class="form-control" required />
-        <sup class="text-danger">*</sup>
+        <div class="invalid-feedback">Debe ingresar una contraseña</div>
       </div>
 
       <!-- DNI -->
       <div class="col-md-6 mb-3">
-        <label>DNI</label>
+        <label>DNI <sup class="text-danger">*</sup></label>
         <input
           v-model="dni"
           type="number"
@@ -31,13 +30,12 @@
           class="form-control"
           required
         />
-        <sup class="text-danger">*</sup>
         <div class="invalid-feedback">Ingresar DNI válido</div>
       </div>
 
       <!-- Celular con select de país -->
       <div class="col-md-6 mb-3">
-        <label>Celular</label>
+        <label>Celular <sup class="text-danger">*</sup></label>
         <div class="input-group">
           <select v-model="countryCode" class="form-select" style="max-width: 120px">
             <option v-for="c in phoneCountries" :key="c.code" :value="c.code">
@@ -52,20 +50,17 @@
             required
             placeholder="1158007..."
           />
-          <sup class="text-danger">*</sup>
         </div>
       </div>
 
       <!-- Nombre y Apellido -->
       <div class="col-md-6 mb-3">
-        <label>Nombre</label>
+        <label>Nombre <sup class="text-danger">*</sup></label>
         <input v-model="nombre" type="text" class="form-control" required />
-        <sup class="text-danger">*</sup>
       </div>
       <div class="col-md-6 mb-3">
-        <label>Apellido</label>
+        <label>Apellido <sup class="text-danger">*</sup></label>
         <input v-model="apellido" type="text" class="form-control" required />
-        <sup class="text-danger">*</sup>
       </div>
 
       <!-- Apodo -->
