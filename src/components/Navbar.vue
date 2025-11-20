@@ -30,7 +30,7 @@
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="/almacenes">Almacenes</a></li>
               <li><a class="dropdown-item" href="/stock">Stock</a></li>
-              <li><a class="dropdown-item" href="/stock">Movimientos</a></li>
+              <li><a class="dropdown-item" href="/movimientos">Movimientos</a></li>
               <li><hr class="dropdown-divider" /></li>
               <li><a class="dropdown-item disabled" href="#">Métricas</a></li>
             </ul>

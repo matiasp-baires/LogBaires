@@ -9,6 +9,7 @@ import Almacenes from '@/views/Almacenes.vue'
 import Stock from '@/views/Stock.vue'
 import Hdrj_Espacios from '@/views/Hdrj_Espacios.vue'
 import Hdrj_Instituciones from '@/views/Hdrj_Instituciones.vue'
+import Movimientos from '@/views/Movimientos.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -52,6 +53,11 @@ const router = createRouter({
       path: '/stock/',
       name: 'stock',
       component: Stock,
+    },
+    {
+      path: '/movimientos/',
+      name: 'movimientos',
+      component: Movimientos,
     },
     {
       path: '/hdrj_espacios/',
