@@ -12,10 +12,12 @@
           required
           placeholder="javer.baires@gmail.com"
         />
+        <sup class="text-danger">*</sup>
       </div>
       <div class="col-md-6 mb-3">
         <label>Contraseña</label>
         <input v-model="password" type="password" class="form-control" required />
+        <sup class="text-danger">*</sup>
       </div>
 
       <!-- DNI -->
@@ -29,6 +31,7 @@
           class="form-control"
           required
         />
+        <sup class="text-danger">*</sup>
         <div class="invalid-feedback">Ingresar DNI válido</div>
       </div>
 
@@ -49,6 +52,7 @@
             required
             placeholder="1158007..."
           />
+          <sup class="text-danger">*</sup>
         </div>
       </div>
 
@@ -56,10 +60,12 @@
       <div class="col-md-6 mb-3">
         <label>Nombre</label>
         <input v-model="nombre" type="text" class="form-control" required />
+        <sup class="text-danger">*</sup>
       </div>
       <div class="col-md-6 mb-3">
         <label>Apellido</label>
         <input v-model="apellido" type="text" class="form-control" required />
+        <sup class="text-danger">*</sup>
       </div>
 
       <!-- Apodo -->

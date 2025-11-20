@@ -1,8 +1,20 @@
 // Lista corta de ejemplo, podés ampliarla
 export const phoneCountries = [
   { emoji: '🇦🇷', code: '+54', name: 'Argentina' },
-  { emoji: '🇺🇾', code: '+598', name: 'Uruguay' },
+  { emoji: '🇧🇴', code: '+591', name: 'Bolivia' },
+  { emoji: '🇧🇷', code: '+55', name: 'Brasil' },
+  { emoji: '🇨🇦', code: '+1', name: 'Canadá' },
   { emoji: '🇨🇱', code: '+56', name: 'Chile' },
+  { emoji: '🇨🇴', code: '+57', name: 'Colombia' },
   { emoji: '🇪🇸', code: '+34', name: 'España' },
-  { emoji: '🇺🇸', code: '+1', name: 'EE.UU' },
+  { emoji: '🇺🇸', code: '+1', name: 'Estados Unidos' },
+  { emoji: '🇫🇷', code: '+33', name: 'Francia' },
+  { emoji: '🇬🇧', code: '+44', name: 'Reino Unido' },
+  { emoji: '🇮🇱', code: '+972', name: 'Israel' },
+  { emoji: '🇮🇹', code: '+39', name: 'Italia' },
+  { emoji: '🇲🇽', code: '+52', name: 'México' },
+  { emoji: '🇵🇾', code: '+595', name: 'Paraguay' },
+  { emoji: '🇵🇪', code: '+51', name: 'Perú' },
+  { emoji: '🇺🇾', code: '+598', name: 'Uruguay' },
+  { emoji: '🇻🇪', code: '+58', name: 'Venezuela' },
 ]

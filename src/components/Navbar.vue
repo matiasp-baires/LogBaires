@@ -6,7 +6,7 @@
           src="/public/icon.png"
           alt="Icon"
           width="30"
-          height="24"
+          height="30"
           class="d-inline-block align-text-top"
         />
         LogApp

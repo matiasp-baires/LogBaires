@@ -543,6 +543,7 @@
                 @change="toggleDelivered"
                 class="form-check-input"
                 role="switch"
+                style="cursor: pointer"
               />
             </div>
           </div>
