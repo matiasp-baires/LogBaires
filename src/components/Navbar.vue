@@ -3,7 +3,7 @@
     <div class="container-fluid">
       <a class="navbar-brand" href="/">
         <img
-          src="/public/icon.png"
+          src="/public/icon (1).png"
           alt="Icon"
           width="30"
           height="30"
