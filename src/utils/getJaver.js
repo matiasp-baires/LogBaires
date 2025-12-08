@@ -45,7 +45,7 @@ export async function getJaverFromSession() {
     // Buscar el javer por id_auth
     const { data: javerData, error: javerError } = await supabase
       .from('Javerim')
-      .select('id_jvr, nombre, apellido, apodo')
+      .select('id_jvr, nombre, apellido, apodo, dni')
       .eq('id_auth', authData.user.id)
       .single()
 
@@ -66,6 +66,7 @@ export async function getJaverFromSession() {
       nombre: javerData.nombre,
       apellido: javerData.apellido,
       apodo: javerData.apodo,
+      dni: javerData.dni,
     }
   } catch (error) {
     console.error('Error en getJaverFromSession:', error)

@@ -30,8 +30,27 @@
       </header>
 
       <!-- Movimientos históricos -->
-      <div class="table-responsive" id="hdrj_trace">
+      <div class="table-responsive" id="hdrj_trace" style="overflow-x: hidden; overflow-y: auto">
         <h3>Movimientos de Stock - HDRJ</h3>
+
+        <!-- Buscador HDRJ -->
+        <div class="row mb-2">
+          <div class="col-12 col-md-6 mb-2 mb-md-0">
+            <input
+              type="search"
+              class="form-control"
+              placeholder="Buscar ID, Origen, Destino, Creado por, Entregado a, Fecha..."
+              v-model="hdrjSearch"
+            />
+          </div>
+          <div class="col-12 col-md-6 text-md-end align-self-center">
+            <small class="text-muted"
+              >Mostrando {{ visibleMovimientosHDRJ.length }} de
+              {{ filteredMovimientosHDRJ.length }}</small
+            >
+          </div>
+        </div>
+
         <table class="table table-hover align-middle">
           <thead>
             <tr>
@@ -44,7 +63,11 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="mov in movimientosHDRJ" :key="mov.id" @dblclick="openMovementDetail(mov)">
+            <tr
+              v-for="mov in visibleMovimientosHDRJ"
+              :key="mov.id"
+              @dblclick="openMovementDetail(mov)"
+            >
               <th scope="row">{{ mov.id.slice(0, 8) }}</th>
               <td>{{ getNombreAlmacen(mov.almacen1) }}</td>
               <td>{{ getNombreAlmacen(mov.almacen2) }}</td>
@@ -52,11 +75,34 @@
               <td>{{ getNombreJaver(mov.delivery_to) }}</td>
               <td>{{ formatDateTime(new Date(mov.created_at)) }}</td>
             </tr>
-            <tr v-if="movimientosHDRJ.length === 0">
+            <tr v-if="filteredMovimientosHDRJ.length === 0">
               <td colspan="6" class="text-center text-muted">Sin movimientos registrados</td>
             </tr>
           </tbody>
         </table>
+
+        <!-- Controls: Ver más / Ver menos HDRJ -->
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <div>
+            <small class="text-muted">Resultados: {{ filteredMovimientosHDRJ.length }}</small>
+          </div>
+          <div>
+            <button
+              v-if="hdrjHasMore"
+              class="btn btn-outline-primary btn-sm me-2"
+              @click="verMasHDRJ"
+            >
+              Ver más
+            </button>
+            <button
+              v-if="hdrjVisibleCount > 5"
+              class="btn btn-outline-secondary btn-sm"
+              @click="verMenosHDRJ"
+            >
+              Ver menos
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Almacenes -->
@@ -136,8 +182,27 @@
       </header>
 
       <!-- Movimientos históricos -->
-      <div class="table-responsive" id="hbtj_trace">
+      <div class="table-responsive" id="hbtj_trace" style="overflow-x: hidden; overflow-y: auto">
         <h3>Movimientos de Stock</h3>
+
+        <!-- Buscador -->
+        <div class="row mb-2">
+          <div class="col-12 col-md-6 mb-2 mb-md-0">
+            <input
+              type="search"
+              class="form-control"
+              placeholder="Buscar ID, Origen, Destino, Creado por, Entregado a, Fecha..."
+              v-model="hbtjSearch"
+            />
+          </div>
+          <div class="col-12 col-md-6 text-md-end align-self-center">
+            <small class="text-muted"
+              >Mostrando {{ visibleMovimientosLog.length }} de
+              {{ filteredMovimientosLog.length }}</small
+            >
+          </div>
+        </div>
+
         <table class="table table-hover align-middle">
           <thead>
             <tr>
@@ -150,7 +215,11 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="mov in movimientosLog" :key="mov.id" @dblclick="openMovementDetail(mov)">
+            <tr
+              v-for="mov in visibleMovimientosLog"
+              :key="mov.id"
+              @dblclick="openMovementDetail(mov)"
+            >
               <th scope="row">{{ mov.id.slice(0, 8) }}</th>
               <td>{{ getNombreAlmacen(mov.almacen1) }}</td>
               <td>{{ getNombreAlmacen(mov.almacen2) }}</td>
@@ -158,11 +227,30 @@
               <td>{{ getNombreJaver(mov.delivery_to) }}</td>
               <td>{{ formatDateTime(new Date(mov.created_at)) }}</td>
             </tr>
-            <tr v-if="movimientosLog.length === 0">
+            <tr v-if="filteredMovimientosLog.length === 0">
               <td colspan="6" class="text-center text-muted">Sin movimientos registrados</td>
             </tr>
           </tbody>
         </table>
+
+        <!-- Controls: Ver más / Ver menos -->
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <div>
+            <small class="text-muted">Resultados: {{ filteredMovimientosLog.length }}</small>
+          </div>
+          <div>
+            <button v-if="hasMore" class="btn btn-outline-primary btn-sm me-2" @click="verMas">
+              Ver más
+            </button>
+            <button
+              v-if="hbtjVisibleCount > 5"
+              class="btn btn-outline-secondary btn-sm"
+              @click="verMenos"
+            >
+              Ver menos
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Almacenes -->
@@ -630,6 +718,62 @@ const almacenesHDRJ = computed(() => {
     return cats.length > 0 && cats.every((c) => c === 'HDRJ')
   })
 })
+// --- Buscador y paginación para sección HDRJ ---
+const hdrjSearch = ref('')
+const hdrjVisibleCount = ref(5)
+
+const filteredMovimientosHDRJ = computed(() => {
+  const q = (hdrjSearch.value || '').toString().trim().toLowerCase()
+  if (!q) return movimientosHDRJ.value
+  return movimientosHDRJ.value.filter((mov) => {
+    const id = (mov.id || '').toString().toLowerCase()
+    const origen = getNombreAlmacen(mov.almacen1).toLowerCase()
+    const destino = getNombreAlmacen(mov.almacen2).toLowerCase()
+    const creado = getNombreJaver(mov.created_by).toLowerCase()
+    const entregado = getNombreJaver(mov.delivery_to).toLowerCase()
+    const fecha = formatDateTime(new Date(mov.created_at)).toString().toLowerCase()
+    return (
+      id.includes(q) ||
+      origen.includes(q) ||
+      destino.includes(q) ||
+      creado.includes(q) ||
+      entregado.includes(q) ||
+      fecha.includes(q)
+    )
+  })
+})
+
+const visibleMovimientosHDRJ = computed(() =>
+  filteredMovimientosHDRJ.value.slice(0, hdrjVisibleCount.value),
+)
+
+const hdrjHasMore = computed(() => filteredMovimientosHDRJ.value.length > hdrjVisibleCount.value)
+
+function verMasHDRJ() {
+  hdrjVisibleCount.value = Math.min(
+    filteredMovimientosHDRJ.value.length,
+    hdrjVisibleCount.value + 10,
+  )
+}
+
+function verMenosHDRJ() {
+  hdrjVisibleCount.value = 5
+  // Intentar contraer todos los accordion dentro de #almacenes1
+  try {
+    const container = document.getElementById('almacenes1')
+    if (container) {
+      const opens = container.querySelectorAll('.accordion-collapse.show')
+      opens.forEach((el) => {
+        el.classList.remove('show')
+        el.classList.add('collapse')
+        const btn = container.querySelector('[data-bs-target="#' + el.id + '"]')
+        if (btn) btn.setAttribute('aria-expanded', 'false')
+      })
+    }
+  } catch (e) {
+    console.warn('Error collapsing almacenes1:', e)
+  }
+}
 const almacenesLog = computed(() => {
   return almacenes.value.filter((a) => {
     const raw = a.category ?? a.categoria ?? []
@@ -638,6 +782,63 @@ const almacenesLog = computed(() => {
     return !cats.includes('HDRJ')
   })
 })
+
+// --- Buscador y paginación para sección HBTJ/LOG ---
+const hbtjSearch = ref('')
+const hbtjVisibleCount = ref(5)
+
+const filteredMovimientosLog = computed(() => {
+  const q = (hbtjSearch.value || '').toString().trim().toLowerCase()
+  if (!q) return movimientosLog.value
+  return movimientosLog.value.filter((mov) => {
+    const id = (mov.id || '').toString().toLowerCase()
+    const origen = getNombreAlmacen(mov.almacen1).toLowerCase()
+    const destino = getNombreAlmacen(mov.almacen2).toLowerCase()
+    const creado = getNombreJaver(mov.created_by).toLowerCase()
+    const entregado = getNombreJaver(mov.delivery_to).toLowerCase()
+    const fecha = formatDateTime(new Date(mov.created_at)).toString().toLowerCase()
+    return (
+      id.includes(q) ||
+      origen.includes(q) ||
+      destino.includes(q) ||
+      creado.includes(q) ||
+      entregado.includes(q) ||
+      fecha.includes(q)
+    )
+  })
+})
+
+const visibleMovimientosLog = computed(() =>
+  filteredMovimientosLog.value.slice(0, hbtjVisibleCount.value),
+)
+
+const hasMore = computed(() => filteredMovimientosLog.value.length > hbtjVisibleCount.value)
+
+function verMas() {
+  hbtjVisibleCount.value = Math.min(
+    filteredMovimientosLog.value.length,
+    hbtjVisibleCount.value + 10,
+  )
+}
+
+function verMenos() {
+  hbtjVisibleCount.value = 5
+  // Intentar contraer todos los accordion dentro de #almacenes2
+  try {
+    const container = document.getElementById('almacenes2')
+    if (container) {
+      const opens = container.querySelectorAll('.accordion-collapse.show')
+      opens.forEach((el) => {
+        el.classList.remove('show')
+        el.classList.add('collapse')
+        const btn = container.querySelector('[data-bs-target="#' + el.id + '"]')
+        if (btn) btn.setAttribute('aria-expanded', 'false')
+      })
+    }
+  } catch (e) {
+    console.warn('Error collapsing almacenes2:', e)
+  }
+}
 
 // Fetching from Database
 async function fetchMovimientos() {
